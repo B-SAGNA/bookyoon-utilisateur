@@ -58,7 +58,7 @@ spring:
     type: com.zaxxer.hikari.HikariDataSource
     url: jdbc:mysql://localhost:3306/bookyoonUserservice?useUnicode=true&characterEncoding=utf8&useSSL=false&useLegacyDatetimeCode=false&createDatabaseIfNotExist=true
     username: root
-    password:
+    password: Passer2024
     hikari:
       poolName: Hikari
       auto-commit: false
@@ -74,6 +74,23 @@ spring:
     cache-duration: PT1S # 1 second, see the ISO 8601 standard
   thymeleaf:
     cache: false
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: om.sn.partner@gmail.com
+    password: sygxzdkbihgzfvxa
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+          allow8bitmime: true
+          ssl:
+            trust: smtp.gmail.com
+            protocols: TLSv1.2
+        smtps:
+          allow8bitmime: true
 
 server:
   port: 8081
@@ -109,6 +126,8 @@ jhipster:
       host: localhost
       port: 5000
       ring-buffer-size: 512
+  mail: # specific JHipster mail property, for standard properties see MailProperties
+    base-url: http://localhost:8080
 # ===================================================================
 # Application specific properties
 # Add your own application properties here, see the ApplicationProperties class
@@ -118,4 +137,13 @@ jhipster:
 # https://www.jhipster.tech/common-application-properties/
 # ===================================================================
 
-# application:
+application:
+  admins:
+    - username: admin
+      email: lamine.tall31@gmail.com
+      first-name: Mouhamed
+      last-name: TALL
+    - username: admin1
+      email: sagna.bassirou@ugb.edu.sn
+      first-name: Bassirou
+      last-name: SAGNA

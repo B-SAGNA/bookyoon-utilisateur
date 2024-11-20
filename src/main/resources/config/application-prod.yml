@@ -47,7 +47,7 @@ spring:
     type: com.zaxxer.hikari.HikariDataSource
     url: jdbc:mysql://localhost:3306/bookyoonUserservice?useUnicode=true&characterEncoding=utf8&useSSL=false&useLegacyDatetimeCode=false&createDatabaseIfNotExist=true
     username: root
-    password:
+    password: Passer2024
     hikari:
       poolName: Hikari
       auto-commit: false
@@ -61,6 +61,23 @@ spring:
     contexts: prod
   thymeleaf:
     cache: true
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: om.sn.partner@gmail.com
+    password: sygxzdkbihgzfvxa
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+          allow8bitmime: true
+          ssl:
+            trust: smtp.gmail.com
+            protocols: TLSv1.2
+        smtps:
+          allow8bitmime: true
 
 # ===================================================================
 # To enable TLS in production, generate a certificate using:
@@ -111,6 +128,8 @@ jhipster:
         # Token is valid 24 hours
         token-validity-in-seconds: 86400
         token-validity-in-seconds-for-remember-me: 2592000
+  mail: # specific JHipster mail property, for standard properties see MailProperties
+    base-url: http://localhost:8080
   logging:
     use-json-format: false # By default, logs are not in Json format
     logstash: # Forward logs to logstash over a socket, used by LoggingConfiguration

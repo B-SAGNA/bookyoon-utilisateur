@@ -46,6 +46,9 @@
     "default_environment": "prod",
     "packaging": "jar"
   },
+  "dependencies": {
+    "bookyoon-userservice": "file:"
+  },
   "devDependencies": {
     "generator-jhipster": "8.5.0",
     "husky": "9.0.11",

@@ -1,5 +1,6 @@
 package sn.sonatel.dsi.ins.imoc.repository;
 
+import feign.Param;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -24,7 +25,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     Optional<User> findOneByLoginIgnoreCase(String login);
 
-    @EntityGraph(attributePaths = "authorities")
+    @EntityGraph(attributePaths = { "authorities", "vehicule" })
     Optional<User> findOneWithAuthoritiesByLogin(String login);
 
     @EntityGraph(attributePaths = "authorities")
@@ -36,4 +37,5 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     @EntityGraph(attributePaths = "authorities")
     Optional<User> findOneWithAuthoritiesById(Long id);
+    //Optional<User> findOneWithAuthoritiesByLogin(@Param("login") String login);
 }

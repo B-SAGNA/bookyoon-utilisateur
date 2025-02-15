@@ -1,6 +1,7 @@
 package sn.sonatel.dsi.ins.imoc.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
@@ -77,6 +78,15 @@ public class User extends AbstractAuditingEntity<Long> implements Serializable {
     @Column(name = "reset_date")
     private Instant resetDate = null;
 
+    @NotNull
+    @Size(min = 6, max = 15)
+    @Column(length = 15, unique = true, nullable = false)
+    private String numTel;
+
+    @Column(name = "adresse", length = 255)
+    @Size(max = 255)
+    private String adresse;
+
     @JsonIgnore
     @ManyToMany
     @JoinTable(
@@ -86,6 +96,12 @@ public class User extends AbstractAuditingEntity<Long> implements Serializable {
     )
     @BatchSize(size = 20)
     private Set<Authority> authorities = new HashSet<>();
+
+    @JsonIgnoreProperties(value = { "user" }, allowSetters = true)
+    //@OneToOne(fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.EAGER)
+    @JoinColumn(unique = true)
+    private Vehicule vehicule;
 
     public Long getId() {
         return id;
@@ -176,6 +192,22 @@ public class User extends AbstractAuditingEntity<Long> implements Serializable {
         this.resetDate = resetDate;
     }
 
+    public String getNumTel() {
+        return numTel;
+    }
+
+    public void setNumTel(String numTel) {
+        this.numTel = numTel;
+    }
+
+    public String getAdresse() {
+        return adresse;
+    }
+
+    public void setAdresse(String adresse) {
+        this.adresse = adresse;
+    }
+
     public String getLangKey() {
         return langKey;
     }
@@ -190,6 +222,14 @@ public class User extends AbstractAuditingEntity<Long> implements Serializable {
 
     public void setAuthorities(Set<Authority> authorities) {
         this.authorities = authorities;
+    }
+
+    public Vehicule getVehicule() {
+        return this.vehicule;
+    }
+
+    public void setVehicule(Vehicule vehicule) {
+        this.vehicule = vehicule;
     }
 
     @Override
@@ -218,6 +258,8 @@ public class User extends AbstractAuditingEntity<Long> implements Serializable {
             ", lastName='" + lastName + '\'' +
             ", email='" + email + '\'' +
             ", imageUrl='" + imageUrl + '\'' +
+            ", numTel='" + numTel + '\'' +
+            ", adresse='" + adresse + '\'' +
             ", activated='" + activated + '\'' +
             ", langKey='" + langKey + '\'' +
             ", activationKey='" + activationKey + '\'' +

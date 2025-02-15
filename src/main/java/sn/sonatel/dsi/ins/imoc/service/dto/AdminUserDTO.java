@@ -51,7 +51,15 @@ public class AdminUserDTO implements Serializable {
 
     private Instant lastModifiedDate;
 
+    @Size(min = 6, max = 15)
+    private String numTel;
+
+    @Size(max = 256)
+    private String adresse;
+
     private Set<String> authorities;
+
+    private VehiculeDTO vehicule;
 
     public AdminUserDTO() {
         // Empty constructor needed for Jackson.
@@ -70,7 +78,13 @@ public class AdminUserDTO implements Serializable {
         this.createdDate = user.getCreatedDate();
         this.lastModifiedBy = user.getLastModifiedBy();
         this.lastModifiedDate = user.getLastModifiedDate();
+        this.numTel = user.getNumTel();
+        this.adresse = user.getAdresse();
         this.authorities = user.getAuthorities().stream().map(Authority::getName).collect(Collectors.toSet());
+
+        if (user.getVehicule() != null) {
+            this.vehicule = new VehiculeDTO(user.getVehicule());
+        }
     }
 
     public Long getId() {
@@ -169,6 +183,22 @@ public class AdminUserDTO implements Serializable {
         this.lastModifiedDate = lastModifiedDate;
     }
 
+    public String getNumTel() {
+        return numTel;
+    }
+
+    public void setNumTel(String numTel) {
+        this.numTel = numTel;
+    }
+
+    public String getAdresse() {
+        return adresse;
+    }
+
+    public void setAdresse(String adresse) {
+        this.adresse = adresse;
+    }
+
     public Set<String> getAuthorities() {
         return authorities;
     }
@@ -177,22 +207,62 @@ public class AdminUserDTO implements Serializable {
         this.authorities = authorities;
     }
 
-    // prettier-ignore
+    public VehiculeDTO getVehicule() {
+        return vehicule;
+    }
+
+    public void setVehicule(VehiculeDTO vehicule) {
+        this.vehicule = vehicule;
+    }
+
     @Override
     public String toString() {
-        return "AdminUserDTO{" +
-            "login='" + login + '\'' +
-            ", firstName='" + firstName + '\'' +
-            ", lastName='" + lastName + '\'' +
-            ", email='" + email + '\'' +
-            ", imageUrl='" + imageUrl + '\'' +
-            ", activated=" + activated +
-            ", langKey='" + langKey + '\'' +
-            ", createdBy=" + createdBy +
-            ", createdDate=" + createdDate +
-            ", lastModifiedBy='" + lastModifiedBy + '\'' +
-            ", lastModifiedDate=" + lastModifiedDate +
-            ", authorities=" + authorities +
-            "}";
+        return (
+            "AdminUserDTO{" +
+            "id=" +
+            id +
+            ", login='" +
+            login +
+            '\'' +
+            ", firstName='" +
+            firstName +
+            '\'' +
+            ", lastName='" +
+            lastName +
+            '\'' +
+            ", email='" +
+            email +
+            '\'' +
+            ", imageUrl='" +
+            imageUrl +
+            '\'' +
+            ", activated=" +
+            activated +
+            ", langKey='" +
+            langKey +
+            '\'' +
+            ", adresse='" +
+            adresse +
+            '\'' +
+            ", numTel='" +
+            numTel +
+            '\'' +
+            ", createdBy='" +
+            createdBy +
+            '\'' +
+            ", createdDate=" +
+            createdDate +
+            ", lastModifiedBy='" +
+            lastModifiedBy +
+            '\'' +
+            ", lastModifiedDate=" +
+            lastModifiedDate +
+            ", authorities=" +
+            authorities +
+            '\'' +
+            ", vehicule=" +
+            getVehicule() +
+            '}'
+        );
     }
 }

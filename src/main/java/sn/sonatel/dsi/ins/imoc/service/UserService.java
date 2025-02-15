@@ -18,12 +18,14 @@ import org.springframework.transaction.annotation.Transactional;
 import sn.sonatel.dsi.ins.imoc.config.Constants;
 import sn.sonatel.dsi.ins.imoc.domain.Authority;
 import sn.sonatel.dsi.ins.imoc.domain.User;
+import sn.sonatel.dsi.ins.imoc.domain.Vehicule;
 import sn.sonatel.dsi.ins.imoc.repository.AuthorityRepository;
 import sn.sonatel.dsi.ins.imoc.repository.UserRepository;
-import sn.sonatel.dsi.ins.imoc.security.AuthoritiesConstants;
+import sn.sonatel.dsi.ins.imoc.repository.VehiculeRepository;
 import sn.sonatel.dsi.ins.imoc.security.SecurityUtils;
 import sn.sonatel.dsi.ins.imoc.service.dto.AdminUserDTO;
 import sn.sonatel.dsi.ins.imoc.service.dto.UserDTO;
+import sn.sonatel.dsi.ins.imoc.service.dto.VehiculeDTO;
 import sn.sonatel.dsi.ins.imoc.web.rest.errors.BadRequestAlertException;
 import tech.jhipster.security.RandomUtil;
 
@@ -41,11 +43,18 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
 
     private final AuthorityRepository authorityRepository;
+    private final VehiculeRepository vehiculeRepository;
 
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, AuthorityRepository authorityRepository) {
+    public UserService(
+        UserRepository userRepository,
+        PasswordEncoder passwordEncoder,
+        AuthorityRepository authorityRepository,
+        VehiculeRepository vehiculeRepository
+    ) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.authorityRepository = authorityRepository;
+        this.vehiculeRepository = vehiculeRepository;
     }
 
     public Optional<User> activateRegistration(String key) {
@@ -85,6 +94,7 @@ public class UserService {
             });
     }
 
+    @Transactional
     public User registerUser(AdminUserDTO userDTO, String password) {
         userRepository
             .findOneByLogin(userDTO.getLogin().toLowerCase())
@@ -94,6 +104,7 @@ public class UserService {
                     throw new UsernameAlreadyUsedException();
                 }
             });
+
         userRepository
             .findOneByEmailIgnoreCase(userDTO.getEmail())
             .ifPresent(existingUser -> {
@@ -102,29 +113,75 @@ public class UserService {
                     throw new EmailAlreadyUsedException();
                 }
             });
+
         User newUser = new User();
-        String encryptedPassword = passwordEncoder.encode(password);
         newUser.setLogin(userDTO.getLogin().toLowerCase());
-        // new user gets initially a generated password
-        newUser.setPassword(encryptedPassword);
+        newUser.setPassword(passwordEncoder.encode(password));
         newUser.setFirstName(userDTO.getFirstName());
         newUser.setLastName(userDTO.getLastName());
-        if (userDTO.getEmail() != null) {
-            newUser.setEmail(userDTO.getEmail().toLowerCase());
-        }
+        newUser.setEmail(userDTO.getEmail() != null ? userDTO.getEmail().toLowerCase() : null);
         newUser.setImageUrl(userDTO.getImageUrl());
         newUser.setLangKey(userDTO.getLangKey());
-        // new user is not active
         newUser.setActivated(false);
-        // new user gets registration key
         newUser.setActivationKey(RandomUtil.generateActivationKey());
+        newUser.setNumTel(userDTO.getNumTel());
+        newUser.setAdresse(userDTO.getAdresse());
+
+        // Validation et ajout des autorités
         Set<Authority> authorities = new HashSet<>();
-        userDTO.getAuthorities().forEach(auth -> authorityRepository.findById(auth).ifPresent(authorities::add));
+        userDTO
+            .getAuthorities()
+            .stream()
+            .distinct()
+            .forEach(auth ->
+                authorityRepository
+                    .findById(auth)
+                    .ifPresentOrElse(authorities::add, () -> {
+                        throw new BadRequestAlertException("Invalid authority", "user", "invalidAuthority");
+                    }));
+
         if (authorities.isEmpty()) {
             throw new BadRequestAlertException("Authority mandatory for user registration", "user", "authorities");
         }
+
         newUser.setAuthorities(authorities);
+
+        // Gestion du rôle Conducteur et du Véhicule
+        if (authorities.stream().anyMatch(auth -> auth.getName().equals("ROLE_CONDUCTEUR"))) {
+            VehiculeDTO vehiculeDTO = userDTO.getVehicule();
+            if (vehiculeDTO == null || vehiculeDTO.getMarque() == null || vehiculeDTO.getModele() == null) {
+                throw new BadRequestAlertException(
+                    "Vous devez impérativement donner les informations de votre véhicule",
+                    "user",
+                    "missingVehicleInfo"
+                );
+            }
+
+            // Validation et création du véhicule
+            vehiculeRepository
+                .findByMatricule(vehiculeDTO.getMatricule())
+                .ifPresent(vehicule -> {
+                    throw new BadRequestAlertException(
+                        "Le matricule du véhicule existe déjà dans le système",
+                        "vehicule",
+                        "duplicateMatricule"
+                    );
+                });
+
+            Vehicule vehicule = new Vehicule();
+            vehicule.setMarque(vehiculeDTO.getMarque());
+            vehicule.setModele(vehiculeDTO.getModele());
+            vehicule.setCouleur(vehiculeDTO.getCouleur());
+            vehicule.setMatricule(vehiculeDTO.getMatricule());
+            vehicule.setPlace(vehiculeDTO.getPlace());
+            vehiculeRepository.save(vehicule);
+
+            vehicule.setUser(newUser);
+            newUser.setVehicule(vehicule);
+        }
+
         userRepository.save(newUser);
+
         log.debug("Created Information for User: {}", newUser);
         return newUser;
     }
@@ -157,6 +214,8 @@ public class UserService {
         user.setResetKey(RandomUtil.generateResetKey());
         user.setResetDate(Instant.now());
         user.setActivated(true);
+        user.setNumTel(userDTO.getNumTel());
+        user.setAdresse(userDTO.getAdresse());
         if (userDTO.getAuthorities() != null) {
             Set<Authority> authorities = userDTO
                 .getAuthorities()
@@ -192,6 +251,8 @@ public class UserService {
                 user.setImageUrl(userDTO.getImageUrl());
                 user.setActivated(userDTO.isActivated());
                 user.setLangKey(userDTO.getLangKey());
+                user.setNumTel(userDTO.getNumTel());
+                user.setAdresse(userDTO.getAdresse());
                 Set<Authority> managedAuthorities = user.getAuthorities();
                 managedAuthorities.clear();
                 userDTO
@@ -270,9 +331,9 @@ public class UserService {
         return userRepository.findOneWithAuthoritiesByLogin(login);
     }
 
-    @Transactional(readOnly = true)
+    @Transactional //(readOnly = true)
     public Optional<User> getUserWithAuthorities() {
-        return SecurityUtils.getCurrentUserLogin().flatMap(userRepository::findOneWithAuthoritiesByLogin);
+        return SecurityUtils.getCurrentUserLogin().flatMap(login -> userRepository.findOneWithAuthoritiesByLogin(login));
     }
 
     /**

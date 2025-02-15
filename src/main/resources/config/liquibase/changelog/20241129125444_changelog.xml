@@ -1,0 +1,76 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog" xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext" xmlns:pro="http://www.liquibase.org/xml/ns/pro" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd http://www.liquibase.org/xml/ns/pro http://www.liquibase.org/xml/ns/pro/liquibase-pro-latest.xsd http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+    <changeSet author="lenovo (generated)" id="1732884962973-13">
+        <dropForeignKeyConstraint baseTableName="jhi_user_authority" constraintName="FK4psxl0jtx6nr7rhqbynr6itoc"/>
+    </changeSet>
+    <changeSet author="lenovo (generated)" id="1732884962973-3">
+        <createTable tableName="vehicule">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="vehiculePK"/>
+            </column>
+            <column name="couleur" type="VARCHAR(30)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="marque" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="matricule" type="VARCHAR(20)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="modele" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="place" type="INT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="lenovo (generated)" id="1732884962973-4">
+        <addColumn tableName="jhi_user">
+            <column name="adresse" type="varchar(255)"/>
+        </addColumn>
+    </changeSet>
+    <changeSet author="lenovo (generated)" id="1732884962973-5">
+        <addColumn tableName="jhi_user">
+            <column name="authorities" type="varbinary(255)"/>
+        </addColumn>
+    </changeSet>
+    <changeSet author="lenovo (generated)" id="1732884962973-6">
+        <addColumn tableName="jhi_user">
+            <column name="num_tel" type="varchar(15)">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
+    <changeSet author="lenovo (generated)" id="1732884962973-7">
+        <addColumn tableName="jhi_user_authority">
+            <column name="vehicule_id" type="bigint"/>
+        </addColumn>
+    </changeSet>
+    <changeSet author="lenovo (generated)" id="1732884962973-8">
+        <addUniqueConstraint columnNames="num_tel" constraintName="UC_JHI_USERNUM_TEL_COL" tableName="jhi_user"/>
+    </changeSet>
+    <changeSet author="lenovo (generated)" id="1732884962973-9">
+        <addUniqueConstraint columnNames="vehicule_id" constraintName="UC_JHI_USER_AUTHORITYVEHICULE_ID_COL" tableName="jhi_user_authority"/>
+    </changeSet>
+    <changeSet author="lenovo (generated)" id="1732884962973-10">
+        <addUniqueConstraint columnNames="matricule" constraintName="UC_VEHICULEMATRICULE_COL" tableName="vehicule"/>
+    </changeSet>
+    <changeSet author="lenovo (generated)" id="1732884962973-11">
+        <createIndex associatedWith="" indexName="IX_jhi_user_authorityPK" tableName="jhi_user_authority" unique="true">
+            <column name="user_id"/>
+        </createIndex>
+    </changeSet>
+    <changeSet author="lenovo (generated)" id="1732884962973-12">
+        <addForeignKeyConstraint baseColumnNames="vehicule_id" baseTableName="jhi_user_authority" constraintName="FKcfs1lf5l4ykhygh2d7sh1pg2h" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="vehicule" validate="true"/>
+    </changeSet>
+    <changeSet author="lenovo (generated)" id="1732884962973-14">
+        <dropColumn columnName="authority_name" tableName="jhi_user_authority"/>
+    </changeSet>
+    <changeSet author="lenovo (generated)" id="1732884962973-1">
+        <dropPrimaryKey tableName="jhi_user_authority"/>
+    </changeSet>
+    <changeSet author="lenovo (generated)" id="1732884962973-2">
+        <addPrimaryKey columnNames="user_id" constraintName="jhi_user_authorityPK" tableName="jhi_user_authority"/>
+    </changeSet>
+</databaseChangeLog>

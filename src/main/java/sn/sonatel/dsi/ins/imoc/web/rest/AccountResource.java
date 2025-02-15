@@ -3,17 +3,21 @@ package sn.sonatel.dsi.ins.imoc.web.rest;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import java.util.Optional;
+import java.util.Random;
+import java.util.UUID;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import sn.sonatel.dsi.ins.imoc.client.NotificationClient;
 import sn.sonatel.dsi.ins.imoc.domain.User;
 import sn.sonatel.dsi.ins.imoc.repository.UserRepository;
 import sn.sonatel.dsi.ins.imoc.security.SecurityUtils;
 import sn.sonatel.dsi.ins.imoc.service.MailService;
 import sn.sonatel.dsi.ins.imoc.service.UserService;
 import sn.sonatel.dsi.ins.imoc.service.dto.AdminUserDTO;
+import sn.sonatel.dsi.ins.imoc.service.dto.NotificationDTO;
 import sn.sonatel.dsi.ins.imoc.service.dto.PasswordChangeDTO;
 import sn.sonatel.dsi.ins.imoc.web.rest.errors.EmailAlreadyUsedException;
 import sn.sonatel.dsi.ins.imoc.web.rest.errors.InvalidPasswordException;
@@ -43,10 +47,18 @@ public class AccountResource {
 
     private final MailService mailService;
 
-    public AccountResource(UserRepository userRepository, UserService userService, MailService mailService) {
+    private final NotificationClient notificationClient;
+
+    public AccountResource(
+        UserRepository userRepository,
+        UserService userService,
+        MailService mailService,
+        NotificationClient notificationClient
+    ) {
         this.userRepository = userRepository;
         this.userService = userService;
         this.mailService = mailService;
+        this.notificationClient = notificationClient;
     }
 
     /**
@@ -60,11 +72,49 @@ public class AccountResource {
     @PostMapping("/register")
     @ResponseStatus(HttpStatus.CREATED)
     public void registerAccount(@Valid @RequestBody ManagedUserVM managedUserVM) {
+        Logger log = LoggerFactory.getLogger(this.getClass());
+
+        log.info("Attempting to register user: {}", managedUserVM);
+
         if (isPasswordLengthInvalid(managedUserVM.getPassword())) {
+            log.error("Invalid password for user: {}", managedUserVM.getLogin());
             throw new InvalidPasswordException();
         }
+
         User user = userService.registerUser(managedUserVM, managedUserVM.getPassword());
+        log.info("User registered successfully: {}", user);
+
         mailService.sendActivationEmail(user);
+        log.info("Activation email sent to user: {}", user.getEmail());
+
+        // Notification de bienvenue
+        String message =
+            "Bienvenue " + user.getLogin() + " en tant que " + user.getAuthorities().toString() + " dans l'application BOOK-YOON !";
+        NotificationDTO notificationDTO = new NotificationDTO();
+        notificationDTO.setMessage(message);
+        notificationDTO.setUserLogin(user.getLogin());
+        Long reservationId = generateRandomReservationId();
+        notificationDTO.setReservationId(reservationId);
+        notificationDTO.setDeleted(false);
+        notificationDTO.setRead(false);
+
+        log.debug("NotificationDTO constructed: {}", notificationDTO);
+
+        try {
+            notificationClient.welcomeNotification(notificationDTO);
+            log.info("Welcome notification sent successfully for user: {}", user.getLogin());
+        } catch (Exception e) {
+            log.error("Error sending notification for user: {}. Error: {}", user.getLogin(), e.getMessage(), e);
+        }
+    }
+
+    // Méthode pour générer un reservationId aléatoire entre 370 et 788
+    private Long generateRandomReservationId() {
+        Random random = new Random();
+        Long reservationId = (long) (370 + random.nextInt(419)); // 419 = 788 - 370 + 1
+        Logger log = LoggerFactory.getLogger(this.getClass());
+        log.debug("Generated reservationId: {}", reservationId);
+        return reservationId;
     }
 
     /**
@@ -101,6 +151,14 @@ public class AccountResource {
      */
     @GetMapping("/account")
     public AdminUserDTO getAccount() {
+        return userService
+            .getUserWithAuthorities()
+            .map(AdminUserDTO::new)
+            .orElseThrow(() -> new AccountResourceException("User could not be found"));
+    }
+
+    @GetMapping("/account-reservation")
+    public AdminUserDTO getAccountReservation() {
         return userService
             .getUserWithAuthorities()
             .map(AdminUserDTO::new)

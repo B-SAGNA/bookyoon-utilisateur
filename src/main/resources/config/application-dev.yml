@@ -58,7 +58,7 @@ spring:
     type: com.zaxxer.hikari.HikariDataSource
     url: jdbc:mysql://localhost:3306/bookyoonUserservice?useUnicode=true&characterEncoding=utf8&useSSL=false&useLegacyDatetimeCode=false&createDatabaseIfNotExist=true
     username: root
-    password: Passer2024
+    password:
     hikari:
       poolName: Hikari
       auto-commit: false
